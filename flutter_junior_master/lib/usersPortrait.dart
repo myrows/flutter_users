@@ -24,6 +24,7 @@ class _UsersPortraitState extends State<UsersPortrait> {
   bool closeTopContainer = false;
   double topContainer = 0;
   DateTime _date = DateTime.now();
+  DateTime _dateEdit = DateTime.now();
 
   void getPostsData() {
     List<User> responseList = listOfUsers;
@@ -124,6 +125,26 @@ class _UsersPortraitState extends State<UsersPortrait> {
     }
   }
 
+    putJsonData( String title, String id ) async {
+    var response = await http.put(
+      Uri.encodeFull('https://5f0ff22d00d4ab001613446c.mockapi.io/api/v1/user/$id'),
+      headers: {
+      "Accept": "application/json",
+      'Content-Type': 'application/json; charset=UTF-8'
+      },
+      body: convert.jsonEncode(<String, String> {
+        'name' : title,
+        'birthdate' : _dateEdit.toString()
+      })
+    );
+
+    if ( response.statusCode == 200 ) {
+      
+    } else {
+      throw Exception( 'Failed to update user' );
+    }
+  }
+
   createAlertDialog( BuildContext context ) {
     TextEditingController customController = TextEditingController();
 
@@ -165,6 +186,44 @@ class _UsersPortraitState extends State<UsersPortrait> {
     });
   }
 
+    editAlertDialog( BuildContext context, User user ) {
+    TextEditingController customController = TextEditingController( text: user.name );
+
+    return showDialog(context: context, builder: (context) {
+      return AlertDialog(
+        title: Text('Edit user', textAlign: TextAlign.center),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: customController,
+            )
+          ],
+        ),
+        actions: [
+            IconButton(
+              icon: Icon( Icons.date_range ),
+              color: Color.fromRGBO(12, 77, 105, 1),
+              onPressed: () {
+                _selectDate( context );
+            },
+          ),
+          RaisedButton(
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+            color: Color.fromRGBO(12, 77, 105, 1),
+            child: Text('Save'),
+            onPressed: () {
+              if ( customController.text.toString().isNotEmpty ) {
+                putJsonData( customController.text.toString(), user.id );
+              }
+            },
+          )
+        ],
+      );
+    });
+  }
+
   Future<Null> _selectDate ( BuildContext context ) async {
 
     DateTime newDateTime = await showRoundedDatePicker(
@@ -173,13 +232,14 @@ class _UsersPortraitState extends State<UsersPortrait> {
       initialDate: DateTime.now(),
       firstDate: DateTime(1947),
       lastDate: DateTime(2030),
+      theme: ThemeData.dark(),
       borderRadius: 16,
     );
 
     if ( newDateTime != null ) {
       setState(() {
         _date = newDateTime;
-        print(_date.toString());
+        _dateEdit = newDateTime;
       });
     }
   }
@@ -259,7 +319,7 @@ class _UsersPortraitState extends State<UsersPortrait> {
                               color: Color.fromRGBO(12, 77, 105, 1),
                               icon: Icons.edit,
                               onTap: () {
-
+                                editAlertDialog( context, listOfUsers.elementAt(index) );
                               })
                             ],
                         ),

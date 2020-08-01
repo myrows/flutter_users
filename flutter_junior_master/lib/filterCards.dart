@@ -28,32 +28,37 @@ class FilterCards extends StatelessWidget {
   }
 
   Widget customFilterCard( context, String title, Color color ) {
-        final double categoryHeight = MediaQuery.of(context).size.height * 0.30 - 50;
+    final double categoryHeight = MediaQuery.of(context).size.height * 0.30 - 90;
 
-    return Container(
-              width: 150,
-              margin: EdgeInsets.only( right: 20 ),
-              height: categoryHeight,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(30.0)
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(title,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20.0
-                    )
-                    ),
-                  ],
+    return InkWell(
+      onTap: () {
+        print('$title');
+      },
+          child: Container(
+                width: 150,
+                margin: EdgeInsets.only( right: 20 ),
+                height: categoryHeight,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(30.0)
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(title,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20.0
+                      )
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            );
+    );
   }
 }
