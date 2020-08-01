@@ -25,9 +25,15 @@ class _UsersPortraitState extends State<UsersPortrait> {
   double topContainer = 0;
   DateTime _date = DateTime.now();
   DateTime _dateEdit = DateTime.now();
+  User user1;
+  User user2;
+  List<User> responseList;
 
-  void getPostsData() {
-    List<User> responseList = listOfUsers;
+  void getPostsData( Function e ) {
+    responseList = listOfUsers;
+    // Filter
+    e.call();
+    //--------
     List<Widget> listItems = [];
     responseList.forEach((user) {
       listItems.add(
@@ -100,7 +106,7 @@ class _UsersPortraitState extends State<UsersPortrait> {
         transformDate( item, item.birthdate );
         listOfUsers.add(item);
       }
-      getPostsData();
+      getPostsData( () {});
       return users.items;
     });
   }
@@ -265,7 +271,8 @@ class _UsersPortraitState extends State<UsersPortrait> {
             centerTitle: true,
             backgroundColor: Colors.white,
             actions: [
-              IconButton(icon: Icon(Icons.search), onPressed: () {}),
+              IconButton(icon: Icon(Icons.search), onPressed: () {
+              }),
             ],
         ),
         body: Container(
@@ -277,13 +284,17 @@ class _UsersPortraitState extends State<UsersPortrait> {
               ),
               AnimatedOpacity(
                 opacity: closeTopContainer?0:1,
-                duration: Duration( milliseconds: 300 ),
+                duration: Duration( milliseconds: 200 ),
                 child: AnimatedContainer(
-                duration: Duration( milliseconds: 300 ),
+                duration: Duration( milliseconds: 200 ),
                 width: size.width,
                 alignment: Alignment.topCenter,
                 height: closeTopContainer?0:categoryHeight,
-                child: FilterCards()
+                child: FilterCards( filter: () {
+                  user1 = listOfUsers.elementAt(0);
+                  user2 = listOfUsers.elementAt(1);
+                  getPostsData( () { responseList.sort((user1, user2) => user2.name.compareTo(user1.name)); });
+                } )
                 ),
               ),
               Expanded(
