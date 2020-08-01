@@ -69,6 +69,25 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_localizations:
+    dependency: "direct main"
+    description: flutter
+    source: sdk
+    version: "0.0.0"
+  flutter_rounded_date_picker:
+    dependency: "direct main"
+    description:
+      name: flutter_rounded_date_picker
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
+  flutter_slidable:
+    dependency: "direct main"
+    description:
+      name: flutter_slidable
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.9"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -123,6 +142,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.9.0"
+  rflutter_alert:
+    dependency: "direct main"
+    description:
+      name: rflutter_alert
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.3"
   sky_engine:
     dependency: transitive
     description: flutter

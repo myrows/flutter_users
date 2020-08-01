@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_junior_master/users.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   runApp(MyApp());
@@ -12,6 +13,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: [
+          const Locale('en', 'US'), // English
+          const Locale('es', 'ES'), // Spanish
+          const Locale('th', 'TH'), // Thai
+      ],
       debugShowCheckedModeBanner: false,
       title: 'Aratech',
       theme: ThemeData(

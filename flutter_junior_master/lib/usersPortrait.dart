@@ -4,7 +4,9 @@ import 'dart:convert' as convert;
 import 'dart:async';
 import 'package:flutter_junior_master/filterCards.dart';
 import 'package:flutter_junior_master/model/user.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_rounded_date_picker/rounded_picker.dart';
 
 
 class UsersPortrait extends StatefulWidget {
@@ -21,6 +23,7 @@ class _UsersPortraitState extends State<UsersPortrait> {
   ScrollController controller = ScrollController();
   bool closeTopContainer = false;
   double topContainer = 0;
+  DateTime _date = DateTime.now();
 
   void getPostsData() {
     List<User> responseList = listOfUsers;
@@ -101,14 +104,101 @@ class _UsersPortraitState extends State<UsersPortrait> {
     });
   }
 
+    postJsonData( String title ) async {
+    var response = await http.post(
+      Uri.encodeFull(url),
+      headers: {
+      "Accept": "application/json",
+      'Content-Type': 'application/json; charset=UTF-8'
+      },
+      body: convert.jsonEncode(<String, String> {
+        'name' : title,
+        'birthdate' : _date.toString()
+      })
+    );
+
+    if ( response.statusCode == 201 ) {
+      
+    } else {
+      throw Exception( 'Failed to create user' );
+    }
+  }
+
+  createAlertDialog( BuildContext context ) {
+    TextEditingController customController = TextEditingController();
+
+    return showDialog(context: context, builder: (context) {
+      return AlertDialog(
+        title: Text('Create user', textAlign: TextAlign.center),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              decoration: InputDecoration(
+                hintText: 'Hermion'
+              ),
+              controller: customController,
+            )
+          ],
+        ),
+        actions: [
+            IconButton(
+              icon: Icon( Icons.date_range ),
+              color: Color.fromRGBO(12, 77, 105, 1),
+              onPressed: () {
+                _selectDate( context );
+            },
+          ),
+          RaisedButton(
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+            color: Color.fromRGBO(12, 77, 105, 1),
+            child: Text('Create'),
+            onPressed: () {
+              if ( customController.text.toString().isNotEmpty ) {
+                postJsonData( customController.text.toString() );
+              }
+            },
+          )
+        ],
+      );
+    });
+  }
+
+  Future<Null> _selectDate ( BuildContext context ) async {
+
+    DateTime newDateTime = await showRoundedDatePicker(
+      context: context,
+      imageHeader: AssetImage('assets/images/users_welcome.png'),
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1947),
+      lastDate: DateTime(2030),
+      borderRadius: 16,
+    );
+
+    if ( newDateTime != null ) {
+      setState(() {
+        _date = newDateTime;
+        print(_date.toString());
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     final double categoryHeight = size.height*0.30;
-      double topContainer = 0;
+    double topContainer = 0;
 
     return SafeArea(
         child: Scaffold(
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              createAlertDialog(context);
+            },
+            backgroundColor: Color.fromRGBO(12, 77, 105, 1),
+            child: Icon( Icons.add ),
+          ),
           appBar: AppBar(
             elevation: 0,
             title: Text('Aratech'),
@@ -159,13 +249,26 @@ class _UsersPortraitState extends State<UsersPortrait> {
                         child: Align(
                           heightFactor: 0.8,
                           alignment: Alignment.topCenter,
-                          child: itemsData[index],
+                          child: Slidable(
+                            child: itemsData[index],
+                            delegate: new SlidableDrawerDelegate(),
+                            actionExtentRatio: 0.25,
+                            secondaryActions: [
+                              IconSlideAction(
+                              caption: 'Edit',
+                              color: Color.fromRGBO(12, 77, 105, 1),
+                              icon: Icons.edit,
+                              onTap: () {
+
+                              })
+                            ],
+                        ),
                         ),
                       ),
                     );
                   },
                 ),
-              )
+              ),
             ],
           ),
         ),
