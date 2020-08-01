@@ -250,6 +250,63 @@ class _UsersPortraitState extends State<UsersPortrait> {
     }
   }
 
+  Widget filterCards() {
+    return SingleChildScrollView(
+      physics: BouncingScrollPhysics(),
+      scrollDirection: Axis.horizontal,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+        child: FittedBox(
+          fit: BoxFit.fill,
+          alignment: Alignment.topCenter,
+            child: Row(
+            children: [
+              customFilterCard(context, 'Newest Date', Colors.deepOrange, () { getPostsData(() { responseList.sort((user1, user2) => user2.birthdate.compareTo(user1.birthdate)); }); }),
+              customFilterCard(context, 'A-z', Colors.deepPurple, () { getPostsData(() { responseList.sort((user1, user2) => user1.name.compareTo(user2.name)); }); }),
+              customFilterCard(context, 'Z-a', Colors.greenAccent, () { getPostsData(() { responseList.sort((user1, user2) => user2.name.compareTo(user1.name)); }); }),
+              customFilterCard(context, 'Older Date', Colors.indigoAccent, () { getPostsData(() { responseList.sort((user1, user2) => user1.birthdate.compareTo(user2.birthdate)); }); })
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+    Widget customFilterCard( context, String title, Color color, Function filter ) {
+    final double categoryHeight = MediaQuery.of(context).size.height * 0.30 - 90;
+
+    return InkWell(
+      onTap: () {
+        filter.call();
+      },
+          child: Container(
+                width: 150,
+                margin: EdgeInsets.only( right: 20 ),
+                height: categoryHeight,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(30.0)
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(title,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20.0
+                      )
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
@@ -272,6 +329,9 @@ class _UsersPortraitState extends State<UsersPortrait> {
             backgroundColor: Colors.white,
             actions: [
               IconButton(icon: Icon(Icons.search), onPressed: () {
+                setState(() {
+                  getPostsData(() { responseList.sort((user1, user2) => user2.birthdate.compareTo(user1.birthdate)); });
+                });
               }),
             ],
         ),
@@ -290,11 +350,7 @@ class _UsersPortraitState extends State<UsersPortrait> {
                 width: size.width,
                 alignment: Alignment.topCenter,
                 height: closeTopContainer?0:categoryHeight,
-                child: FilterCards( filter: () {
-                  user1 = listOfUsers.elementAt(0);
-                  user2 = listOfUsers.elementAt(1);
-                  getPostsData( () { responseList.sort((user1, user2) => user2.name.compareTo(user1.name)); });
-                } )
+                child: filterCards()
                 ),
               ),
               Expanded(
