@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:convert' as convert;
 import 'dart:async';
-import 'package:flutter_junior_master/filterCards.dart';
 import 'package:flutter_junior_master/model/user.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:http/http.dart' as http;
@@ -12,8 +11,16 @@ import 'package:flutter_rounded_date_picker/rounded_picker.dart';
 class UsersPortrait extends StatefulWidget {
   UsersPortrait({Key key}) : super(key : key);
 
+_UsersPortraitState _usersPortraitState = _UsersPortraitState();
+
 @override
-_UsersPortraitState createState() => _UsersPortraitState();
+_UsersPortraitState createState() => _usersPortraitState;
+
+void getPostsData ( Function e, List<User> searchList ) {
+  _usersPortraitState.getPostsData(e, searchList);
+}
+
+
 }
 
 class _UsersPortraitState extends State<UsersPortrait> {
@@ -28,9 +35,14 @@ class _UsersPortraitState extends State<UsersPortrait> {
   User user1;
   User user2;
   List<User> responseList;
+  TextEditingController customControllerQuery = TextEditingController();
 
-  void getPostsData( Function e ) {
+  void getPostsData( Function e, List<User> searchList ) {
+    if ( searchList != null ) {
+    responseList = searchList;
+    } else {
     responseList = listOfUsers;
+    }
     // Filter
     e.call();
     //--------
@@ -93,6 +105,15 @@ class _UsersPortraitState extends State<UsersPortrait> {
   }
 
   Future<List<User>> getJsonData() async {
+
+    if ( listOfUsers != null ) {
+      listOfUsers.clear();
+    }
+
+    if ( responseList != null ) {
+      responseList.clear();
+    }
+
     var response = await http.get(
       Uri.encodeFull(url),
       headers: {"Accept": "application/json"}
@@ -106,7 +127,7 @@ class _UsersPortraitState extends State<UsersPortrait> {
         transformDate( item, item.birthdate );
         listOfUsers.add(item);
       }
-      getPostsData( () {});
+      getPostsData( () {}, listOfUsers);
       return users.items;
     });
   }
@@ -125,7 +146,7 @@ class _UsersPortraitState extends State<UsersPortrait> {
     );
 
     if ( response.statusCode == 201 ) {
-      
+      refreshList();
     } else {
       throw Exception( 'Failed to create user' );
     }
@@ -145,10 +166,17 @@ class _UsersPortraitState extends State<UsersPortrait> {
     );
 
     if ( response.statusCode == 200 ) {
-      
+      refreshList();
     } else {
       throw Exception( 'Failed to update user' );
     }
+  }
+
+  void refreshList() {
+    setState(() {
+      getJsonData();
+      getPostsData(() {}, listOfUsers);
+    });
   }
 
   createAlertDialog( BuildContext context ) {
@@ -261,10 +289,10 @@ class _UsersPortraitState extends State<UsersPortrait> {
           alignment: Alignment.topCenter,
             child: Row(
             children: [
-              customFilterCard(context, 'Newest Date', Colors.deepOrange, () { getPostsData(() { responseList.sort((user1, user2) => user2.birthdate.compareTo(user1.birthdate)); }); }),
-              customFilterCard(context, 'A-z', Colors.deepPurple, () { getPostsData(() { responseList.sort((user1, user2) => user1.name.compareTo(user2.name)); }); }),
-              customFilterCard(context, 'Z-a', Colors.greenAccent, () { getPostsData(() { responseList.sort((user1, user2) => user2.name.compareTo(user1.name)); }); }),
-              customFilterCard(context, 'Older Date', Colors.indigoAccent, () { getPostsData(() { responseList.sort((user1, user2) => user1.birthdate.compareTo(user2.birthdate)); }); })
+              customFilterCard(context, 'Newest Date', Colors.deepOrange, () { getPostsData(() { responseList.sort((user1, user2) => user2.birthdate.compareTo(user1.birthdate)); }, null); }),
+              customFilterCard(context, 'A-z', Colors.deepPurple, () { getPostsData(() { responseList.sort((user1, user2) => user1.name.compareTo(user2.name)); }, null); }),
+              customFilterCard(context, 'Z-a', Colors.greenAccent, () { getPostsData(() { responseList.sort((user1, user2) => user2.name.compareTo(user1.name)); }, null); }),
+              customFilterCard(context, 'Older Date', Colors.indigoAccent, () { getPostsData(() { responseList.sort((user1, user2) => user1.birthdate.compareTo(user2.birthdate)); }, null); })
             ],
           ),
         ),
@@ -324,14 +352,36 @@ class _UsersPortraitState extends State<UsersPortrait> {
           ),
           appBar: AppBar(
             elevation: 0,
-            title: Text('Aratech'),
-            centerTitle: true,
+            title: Container(
+              margin: EdgeInsets.symmetric( horizontal: 10.0, vertical: 8.0 ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(22.0))
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      controller: customControllerQuery,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'Search users',
+                        hintStyle: TextStyle(
+                          color: Colors.black
+                        )
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
             backgroundColor: Colors.white,
             actions: [
               IconButton(icon: Icon(Icons.search), onPressed: () {
-                setState(() {
-                  getPostsData(() { responseList.sort((user1, user2) => user2.birthdate.compareTo(user1.birthdate)); });
-                });
+                List<User> searchList = listOfUsers.where((u) => u.name.toLowerCase().startsWith(customControllerQuery.text.toLowerCase())).toList();
+                getPostsData(() {}, searchList );
               }),
             ],
         ),
@@ -386,7 +436,7 @@ class _UsersPortraitState extends State<UsersPortrait> {
                               color: Color.fromRGBO(12, 77, 105, 1),
                               icon: Icons.edit,
                               onTap: () {
-                                editAlertDialog( context, listOfUsers.elementAt(index) );
+                                editAlertDialog( context, responseList.elementAt(index) );
                               })
                             ],
                         ),
