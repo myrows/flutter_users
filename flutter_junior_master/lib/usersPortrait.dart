@@ -191,7 +191,12 @@ class _UsersPortraitState extends State<UsersPortrait> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(user.name, style: TextStyle( fontSize: 20, fontWeight: FontWeight.bold )),
+                    Container(
+                      width: 100,
+                      child: Text(user.name, style: TextStyle( fontSize: 20, fontWeight: FontWeight.bold ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,)
+                    ),
                     SizedBox( height: 15.0 ),
                     Text(user.birthdate, style: TextStyle( fontSize: 16, color: Colors.grey ))
 

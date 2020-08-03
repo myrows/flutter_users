@@ -28,7 +28,13 @@ class MyApp extends StatelessWidget {
         primaryColor: Color.fromRGBO(12, 77, 105, 1),
         scaffoldBackgroundColor: Colors.white
       ),
-      home: WelcomeScreen(),
+      home: LayoutBuilder(builder: (context, constraints) {
+        if ( constraints.maxHeight < 600 ) {
+          return WelcomeScreenLandscape();
+        } else {
+          return WelcomeScreen();
+        }
+      }),
     );
   }
 }
@@ -45,6 +51,46 @@ class WelcomeScreen extends StatelessWidget {
             children: [
               Image(
                 image: AssetImage('assets/images/users_welcome.png'),
+                fit: BoxFit.fill,
+              ),
+              SizedBox( height: 80.0 ),
+              RaisedButton(onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => Users()));
+              },
+              color: Color.fromRGBO(12, 77, 105, 1),
+              child: Text(S.current.buttonMain, style: TextStyle(
+                fontSize: 18.0,
+                color: Colors.white
+              )
+              ),
+              padding: EdgeInsets.only( top: 20.0, bottom: 20.0, left: 50.0, right: 50.0 ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(50.0)
+              ),
+              elevation: 7.0,
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class WelcomeScreenLandscape extends StatelessWidget {
+  const WelcomeScreenLandscape({Key key}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image(
+                image: AssetImage('assets/images/users_welcome.png'),
+                height: MediaQuery.of(context).size.height * 0.3,
+                width: MediaQuery.of(context).size.width * 0.3,
                 fit: BoxFit.fill,
               ),
               SizedBox( height: 80.0 ),
