@@ -18,10 +18,6 @@ _UsersPortraitState _usersPortraitState = _UsersPortraitState();
 @override
 _UsersPortraitState createState() => _usersPortraitState;
 
-void getPostsData ( Function e, List<User> searchList ) {
-  _usersPortraitState.getPostsData(e, searchList);
-}
-
 
 }
 
@@ -37,7 +33,138 @@ class _UsersPortraitState extends State<UsersPortrait> {
   List<User> responseList;
   TextEditingController customControllerQuery = TextEditingController();
 
-  void getPostsData( Function e, List<User> searchList ) {
+  @override
+  void initState() { 
+    super.initState();
+    // Get data
+    getJsonData();
+    controller.addListener(() {
+      double value = controller.offset/119;
+      setState(() {
+        topContainer = value;
+        closeTopContainer = controller.offset > 50;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
+    final double categoryHeight = size.height*0.30;
+    double topContainer = 0;
+
+    return SafeArea(
+        child: Scaffold(
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              createAlertDialog(context);
+            },
+            backgroundColor: Color.fromRGBO(12, 77, 105, 1),
+            child: Icon( Icons.add ),
+          ),
+          appBar: AppBar(
+            elevation: 0,
+            title: Container(
+              margin: EdgeInsets.symmetric( horizontal: 10.0, vertical: 8.0 ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(22.0))
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Expanded(
+                    flex: 1,
+                    child: TextFormField(
+                      controller: customControllerQuery,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: S.current.searchUsersHint,
+                        hintStyle: TextStyle(
+                          color: Colors.grey
+                        )
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+            backgroundColor: Colors.white,
+            actions: [
+              IconButton(icon: Icon(Icons.search), onPressed: () {
+                List<User> searchList = listOfUsers.where((u) => u.name.toLowerCase().startsWith(customControllerQuery.text.toLowerCase())).toList();
+                getPostsData(() {}, searchList );
+              }),
+            ],
+        ),
+        body: Container(
+          height: size.height,
+          child: Column(
+            children: [
+              SizedBox(
+                height: 10
+              ),
+              AnimatedOpacity(
+                opacity: closeTopContainer?0:1,
+                duration: Duration( milliseconds: 200 ),
+                child: AnimatedContainer(
+                duration: Duration( milliseconds: 200 ),
+                width: size.width,
+                alignment: Alignment.topCenter,
+                height: closeTopContainer?0:categoryHeight,
+                child: filterCards()
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  controller: controller,
+                  itemCount: itemsData.length,
+                  physics: BouncingScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    double scale = 1.0;
+                    if ( topContainer > 0.5 ) {
+                      scale = index + 0.5 - topContainer;
+                      if ( scale < 0 ) {
+                        scale = 0;
+                      } else if ( scale > 1 ) {
+                        scale = 1;
+                      }
+                    }
+                    return Opacity(
+                      opacity: scale,
+                      child: Transform(
+                        transform: Matrix4.identity()..scale(scale, scale),
+                        alignment: Alignment.bottomCenter,
+                        child: Align(
+                          heightFactor: 0.8,
+                          alignment: Alignment.topCenter,
+                          child: Slidable(
+                            child: itemsData[index],
+                            delegate: new SlidableDrawerDelegate(),
+                            actionExtentRatio: 0.25,
+                            secondaryActions: [
+                              IconSlideAction(
+                              caption: S.current.editSlideOption,
+                              color: Color.fromRGBO(12, 77, 105, 1),
+                              icon: Icons.edit,
+                              onTap: () {
+                                editAlertDialog( context, responseList.elementAt(index) );
+                              })
+                            ],
+                        ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+    void getPostsData( Function e, List<User> searchList ) {
     if ( searchList != null ) {
     responseList = searchList;
     } else {
@@ -82,22 +209,7 @@ class _UsersPortraitState extends State<UsersPortrait> {
       itemsData = listItems;
     });
   }
-
-  @override
-  void initState() { 
-    super.initState();
-    // Get data
-    getJsonData();
-    controller.addListener(() {
-      double value = controller.offset/119;
-      setState(() {
-        topContainer = value;
-        closeTopContainer = controller.offset > 50;
-      });
-    });
-  }
-
-  transformDate( User item, String date ) {
+    transformDate( User item, String date ) {
 
     List<String> dateParts = date.split('-');
     String year = dateParts.elementAt(0);
@@ -338,121 +450,4 @@ class _UsersPortraitState extends State<UsersPortrait> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-    final double categoryHeight = size.height*0.30;
-    double topContainer = 0;
-
-    return SafeArea(
-        child: Scaffold(
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              createAlertDialog(context);
-            },
-            backgroundColor: Color.fromRGBO(12, 77, 105, 1),
-            child: Icon( Icons.add ),
-          ),
-          appBar: AppBar(
-            elevation: 0,
-            title: Container(
-              margin: EdgeInsets.symmetric( horizontal: 10.0, vertical: 8.0 ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(22.0))
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Expanded(
-                    flex: 1,
-                    child: TextFormField(
-                      controller: customControllerQuery,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: S.current.searchUsersHint,
-                        hintStyle: TextStyle(
-                          color: Colors.grey
-                        )
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            ),
-            backgroundColor: Colors.white,
-            actions: [
-              IconButton(icon: Icon(Icons.search), onPressed: () {
-                List<User> searchList = listOfUsers.where((u) => u.name.toLowerCase().startsWith(customControllerQuery.text.toLowerCase())).toList();
-                getPostsData(() {}, searchList );
-              }),
-            ],
-        ),
-        body: Container(
-          height: size.height,
-          child: Column(
-            children: [
-              SizedBox(
-                height: 10
-              ),
-              AnimatedOpacity(
-                opacity: closeTopContainer?0:1,
-                duration: Duration( milliseconds: 200 ),
-                child: AnimatedContainer(
-                duration: Duration( milliseconds: 200 ),
-                width: size.width,
-                alignment: Alignment.topCenter,
-                height: closeTopContainer?0:categoryHeight,
-                child: filterCards()
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  controller: controller,
-                  itemCount: itemsData.length,
-                  physics: BouncingScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    double scale = 1.0;
-                    if ( topContainer > 0.5 ) {
-                      scale = index + 0.5 - topContainer;
-                      if ( scale < 0 ) {
-                        scale = 0;
-                      } else if ( scale > 1 ) {
-                        scale = 1;
-                      }
-                    }
-                    return Opacity(
-                      opacity: scale,
-                      child: Transform(
-                        transform: Matrix4.identity()..scale(scale, scale),
-                        alignment: Alignment.bottomCenter,
-                        child: Align(
-                          heightFactor: 0.8,
-                          alignment: Alignment.topCenter,
-                          child: Slidable(
-                            child: itemsData[index],
-                            delegate: new SlidableDrawerDelegate(),
-                            actionExtentRatio: 0.25,
-                            secondaryActions: [
-                              IconSlideAction(
-                              caption: S.current.editSlideOption,
-                              color: Color.fromRGBO(12, 77, 105, 1),
-                              icon: Icons.edit,
-                              onTap: () {
-                                editAlertDialog( context, responseList.elementAt(index) );
-                              })
-                            ],
-                        ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
