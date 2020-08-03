@@ -1,0 +1,11 @@
+{
+    "buttonMain": "Hey, bienvenue !",
+    "searchUsersHint": "Rechercher des utilisateurs ..",
+    "newestDate": "Date plus récente",
+    "olderDate": "Date plus ancienne",
+    "titlePopUpEdit": "Modifier l'utilisateur",
+    "buttonPopUpEdit": "Enregistrer",
+    "titlePopUpCreate": "Créer un utilisateur",
+    "buttonPopUpCreate": "Créer",
+    "editSlideOption": "Éditer"
+}
