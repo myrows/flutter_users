@@ -1,8 +1,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_junior_master/generated/l10n.dart';
 import 'package:flutter_junior_master/users.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'generated/l10n.dart';
 
 void main() {
   runApp(MyApp());
@@ -14,14 +16,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       localizationsDelegates: [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        S.delegate
       ],
-      supportedLocales: [
-          const Locale('en', 'US'), // English
-          const Locale('es', 'ES'), // Spanish
-          const Locale('th', 'TH'), // Thai
-      ],
+      supportedLocales: S.delegate.supportedLocales,
       debugShowCheckedModeBanner: false,
       title: 'Aratech',
       theme: ThemeData(
@@ -52,7 +52,7 @@ class WelcomeScreen extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => Users()));
               },
               color: Color.fromRGBO(12, 77, 105, 1),
-              child: Text(' Hey, welcome ! ', style: TextStyle(
+              child: Text(S.current.buttonMain, style: TextStyle(
                 fontSize: 18.0,
                 color: Colors.white
               )

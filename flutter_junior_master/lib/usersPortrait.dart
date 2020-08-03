@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_junior_master/generated/l10n.dart';
 import 'dart:convert' as convert;
 import 'dart:async';
 import 'package:flutter_junior_master/model/user.dart';
@@ -8,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_rounded_date_picker/rounded_picker.dart';
 
 
+// ignore: must_be_immutable
 class UsersPortrait extends StatefulWidget {
   UsersPortrait({Key key}) : super(key : key);
 
@@ -32,8 +34,6 @@ class _UsersPortraitState extends State<UsersPortrait> {
   double topContainer = 0;
   DateTime _date = DateTime.now();
   DateTime _dateEdit = DateTime.now();
-  User user1;
-  User user2;
   List<User> responseList;
   TextEditingController customControllerQuery = TextEditingController();
 
@@ -184,7 +184,7 @@ class _UsersPortraitState extends State<UsersPortrait> {
 
     return showDialog(context: context, builder: (context) {
       return AlertDialog(
-        title: Text('Create user', textAlign: TextAlign.center),
+        title: Text(S.current.titlePopUpCreate, textAlign: TextAlign.center),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -208,8 +208,9 @@ class _UsersPortraitState extends State<UsersPortrait> {
             elevation: 0,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
             color: Color.fromRGBO(12, 77, 105, 1),
-            child: Text('Create'),
+            child: Text(S.current.buttonPopUpCreate),
             onPressed: () {
+              Navigator.pop(context);
               if ( customController.text.toString().isNotEmpty ) {
                 postJsonData( customController.text.toString() );
               }
@@ -225,7 +226,8 @@ class _UsersPortraitState extends State<UsersPortrait> {
 
     return showDialog(context: context, builder: (context) {
       return AlertDialog(
-        title: Text('Edit user', textAlign: TextAlign.center),
+        
+        title: Text(S.current.titlePopUpEdit, textAlign: TextAlign.center),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -246,8 +248,9 @@ class _UsersPortraitState extends State<UsersPortrait> {
             elevation: 0,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
             color: Color.fromRGBO(12, 77, 105, 1),
-            child: Text('Save'),
+            child: Text(S.current.buttonPopUpEdit),
             onPressed: () {
+              Navigator.pop(context);
               if ( customController.text.toString().isNotEmpty ) {
                 putJsonData( customController.text.toString(), user.id );
               }
@@ -289,10 +292,10 @@ class _UsersPortraitState extends State<UsersPortrait> {
           alignment: Alignment.topCenter,
             child: Row(
             children: [
-              customFilterCard(context, 'Newest Date', Colors.deepOrange, () { getPostsData(() { responseList.sort((user1, user2) => user2.birthdate.compareTo(user1.birthdate)); }, null); }),
+              customFilterCard(context, S.current.newestDate, Colors.deepOrange, () { getPostsData(() { responseList.sort((user1, user2) => user2.birthdate.compareTo(user1.birthdate)); }, null); }),
               customFilterCard(context, 'A-z', Colors.deepPurple, () { getPostsData(() { responseList.sort((user1, user2) => user1.name.compareTo(user2.name)); }, null); }),
               customFilterCard(context, 'Z-a', Colors.greenAccent, () { getPostsData(() { responseList.sort((user1, user2) => user2.name.compareTo(user1.name)); }, null); }),
-              customFilterCard(context, 'Older Date', Colors.indigoAccent, () { getPostsData(() { responseList.sort((user1, user2) => user1.birthdate.compareTo(user2.birthdate)); }, null); })
+              customFilterCard(context, S.current.olderDate, Colors.indigoAccent, () { getPostsData(() { responseList.sort((user1, user2) => user1.birthdate.compareTo(user2.birthdate)); }, null); })
             ],
           ),
         ),
@@ -367,9 +370,9 @@ class _UsersPortraitState extends State<UsersPortrait> {
                       controller: customControllerQuery,
                       decoration: InputDecoration(
                         border: InputBorder.none,
-                        hintText: 'Search users',
+                        hintText: S.current.searchUsersHint,
                         hintStyle: TextStyle(
-                          color: Colors.black
+                          color: Colors.grey
                         )
                       ),
                     ),
@@ -432,7 +435,7 @@ class _UsersPortraitState extends State<UsersPortrait> {
                             actionExtentRatio: 0.25,
                             secondaryActions: [
                               IconSlideAction(
-                              caption: 'Edit',
+                              caption: S.current.editSlideOption,
                               color: Color.fromRGBO(12, 77, 105, 1),
                               icon: Icons.edit,
                               onTap: () {

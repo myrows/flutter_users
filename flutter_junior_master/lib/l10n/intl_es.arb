@@ -1,0 +1,11 @@
+{
+    "buttonMain": "Hey, bienvenido !",
+    "searchUsersHint": "Buscar usuarios ..",
+    "newestDate": "Fecha descendente",
+    "olderDate": "Fecha ascendente",
+    "titlePopUpEdit": "Editar usuario",
+    "buttonPopUpEdit": "Guardar",
+    "titlePopUpCreate": "Crear usuario",
+    "buttonPopUpCreate": "Añadir",
+    "editSlideOption": "Editar"
+}
