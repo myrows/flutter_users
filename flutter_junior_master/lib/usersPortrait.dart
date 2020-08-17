@@ -1,11 +1,11 @@
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_junior_master/generated/l10n.dart';
-import 'dart:convert' as convert;
 import 'dart:async';
 import 'package:flutter_junior_master/model/user.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_rounded_date_picker/rounded_picker.dart';
 
 
@@ -22,7 +22,6 @@ _UsersPortraitState createState() => _usersPortraitState;
 }
 
 class _UsersPortraitState extends State<UsersPortrait> {
-  final String url = 'https://5f0ff22d00d4ab001613446c.mockapi.io/api/v1/user/';
   List<Widget> itemsData = [];
   List<User> listOfUsers = [];
   ScrollController controller = ScrollController();
@@ -33,11 +32,12 @@ class _UsersPortraitState extends State<UsersPortrait> {
   List<User> responseList;
   TextEditingController customControllerQuery = TextEditingController();
 
+
   @override
   void initState() { 
     super.initState();
     // Get data
-    getJsonData();
+    getUsers();
     controller.addListener(() {
       double value = controller.offset/119;
       setState(() {
@@ -221,7 +221,7 @@ class _UsersPortraitState extends State<UsersPortrait> {
     item.birthdate = year;
   }
 
-  Future<List<User>> getJsonData() async {
+  void getUsers() async {
 
     if ( listOfUsers != null ) {
       listOfUsers.clear();
@@ -231,67 +231,39 @@ class _UsersPortraitState extends State<UsersPortrait> {
       responseList.clear();
     }
 
-    var response = await http.get(
-      Uri.encodeFull(url),
-      headers: {"Accept": "application/json"}
-    );
-
-    setState(() {
-      var convertDataToJson = convert.json.decode(response.body);
-      final users = new User.fromJsonList(convertDataToJson);
-
-      for (var item in users.items) {
-        transformDate( item, item.birthdate );
-        listOfUsers.add(item);
-      }
-      getPostsData( () {}, listOfUsers);
-      return users.items;
+    final client = RestClient(Dio(BaseOptions(contentType: "application/json")));
+    var tasks = await client.getTasks();
+    tasks.forEach((u) {
+      transformDate( u, u.birthdate );
+      listOfUsers.add(u);
     });
+
+    getPostsData( () {}, listOfUsers);
   }
 
-    postJsonData( String title ) async {
-    var response = await http.post(
-      Uri.encodeFull(url),
-      headers: {
-      "Accept": "application/json",
-      'Content-Type': 'application/json; charset=UTF-8'
-      },
-      body: convert.jsonEncode(<String, String> {
+  void createUsers( String title ) async {
+    final client = RestClient(Dio(BaseOptions(contentType: "application/json")));
+    Map<String, String> userBody = {
         'name' : title,
         'birthdate' : _date.toString()
-      })
-    );
-
-    if ( response.statusCode == 201 ) {
-      refreshList();
-    } else {
-      throw Exception( 'Failed to create user' );
-    }
+    };
+    await client.createUser( userBody );
+    refreshList();
   }
 
-    putJsonData( String title, String id ) async {
-    var response = await http.put(
-      Uri.encodeFull('https://5f0ff22d00d4ab001613446c.mockapi.io/api/v1/user/$id'),
-      headers: {
-      "Accept": "application/json",
-      'Content-Type': 'application/json; charset=UTF-8'
-      },
-      body: convert.jsonEncode(<String, String> {
+    void editUsers( String title, String id ) async {
+    final client = RestClient(Dio(BaseOptions(contentType: "application/json")));
+    Map<String, String> userBody = {
         'name' : title,
         'birthdate' : _dateEdit.toString()
-      })
-    );
-
-    if ( response.statusCode == 200 ) {
-      refreshList();
-    } else {
-      throw Exception( 'Failed to update user' );
-    }
+    };
+    await client.editUser( id, userBody );
+    refreshList();
   }
 
   void refreshList() {
     setState(() {
-      getJsonData();
+      getUsers();
       getPostsData(() {}, listOfUsers);
     });
   }
@@ -329,7 +301,7 @@ class _UsersPortraitState extends State<UsersPortrait> {
             onPressed: () {
               Navigator.pop(context);
               if ( customController.text.toString().isNotEmpty ) {
-                postJsonData( customController.text.toString() );
+                createUsers( customController.text.toString() );
               }
             },
           )
@@ -369,7 +341,7 @@ class _UsersPortraitState extends State<UsersPortrait> {
             onPressed: () {
               Navigator.pop(context);
               if ( customController.text.toString().isNotEmpty ) {
-                putJsonData( customController.text.toString(), user.id );
+                editUsers ( customController.text.toString(), user.id );
               }
             },
           )

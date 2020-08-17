@@ -1,3 +1,26 @@
+
+import 'package:dio/dio.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:retrofit/retrofit.dart';
+
+part 'user.g.dart';
+
+@RestApi(baseUrl: "https://5f0ff22d00d4ab001613446c.mockapi.io/api/v1/user/")
+abstract class RestClient {
+  factory RestClient(Dio dio, {String baseUrl}) = _RestClient;
+  
+    @GET("/")
+    Future<List<User>> getTasks();
+
+    @POST("/")
+    Future<User> createUser( @Body() Map<String, dynamic> body );
+
+    @PUT("/{id}")
+    Future<User> editUser( @Path() String id, @Body() Map<String, dynamic> body );
+
+  }
+
+@JsonSerializable()
 class User {
   String id;
   String name;
@@ -5,23 +28,6 @@ class User {
 
   User({this.id, this.name, this.birthdate});
 
-  List<User> items = new List();
-
-  User.fromJsonMap(Map<String, dynamic> json) {
-    id          = json['id']; 
-    name        = json['name'];
-    birthdate   = json['birthdate'];
-
-  }
-
-  User.fromJsonList ( List<dynamic> jsonList ) {
-
-    if ( jsonList == null ) return;
-
-    for ( var item in jsonList ) {
-      final user = new User.fromJsonMap(item);
-      items.add(user);
-    }
-
-  }
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+  Map<String, dynamic> toJson() => _$UserToJson(this);
 }
