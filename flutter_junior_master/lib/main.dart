@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_junior_master/bloc/provider.dart';
 import 'package:flutter_junior_master/generated/l10n.dart';
 import 'package:flutter_junior_master/users.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -14,27 +15,29 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        S.delegate
-      ],
-      supportedLocales: S.delegate.supportedLocales,
-      debugShowCheckedModeBanner: false,
-      title: 'Aratech',
-      theme: ThemeData(
-        primaryColor: Color.fromRGBO(12, 77, 105, 1),
-        scaffoldBackgroundColor: Colors.white
+    return Provider(
+        child: MaterialApp(
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          S.delegate
+        ],
+        supportedLocales: S.delegate.supportedLocales,
+        debugShowCheckedModeBanner: false,
+        title: 'Aratech',
+        theme: ThemeData(
+          primaryColor: Color.fromRGBO(12, 77, 105, 1),
+          scaffoldBackgroundColor: Colors.white
+        ),
+        home: LayoutBuilder(builder: (context, constraints) {
+          if ( constraints.maxHeight < 600 ) {
+            return WelcomeScreenLandscape();
+          } else {
+            return WelcomeScreen();
+          }
+        }),
       ),
-      home: LayoutBuilder(builder: (context, constraints) {
-        if ( constraints.maxHeight < 600 ) {
-          return WelcomeScreenLandscape();
-        } else {
-          return WelcomeScreen();
-        }
-      }),
     );
   }
 }

@@ -8,6 +8,9 @@ import 'package:flutter_junior_master/model/user.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_rounded_date_picker/rounded_picker.dart';
 
+import 'bloc/provider.dart';
+import 'bloc/user_bloc.dart';
+
 class UsersLandscape extends StatefulWidget {
   UsersLandscape({Key key}) : super(key: key);
 
@@ -19,32 +22,24 @@ class UsersLandscape extends StatefulWidget {
 
 class _UsersLandscapeState extends State<UsersLandscape>{
 
-  List<Widget> itemsData = [];
-  List<User> listOfUsers = [];
   ScrollController controller = ScrollController();
   bool closeTopContainer = false;
   double topContainer = 0;
   DateTime _date = DateTime.now();
   DateTime _dateEdit = DateTime.now();
-  List<User> responseList;
   TextEditingController customControllerQuery = TextEditingController();
+  UserBloc bloc = UserBloc();
 
   @override
-  void initState() { 
-    super.initState();
-    // Get data
-    getUsers();
-    controller.addListener(() {
-      double value = controller.offset/119;
-      setState(() {
-        topContainer = value;
-        closeTopContainer = controller.offset > 50;
-      });
-    });
+  void dispose() { 
+    bloc.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // bloc
+    bloc = Provider.of(context);
     final Size size = MediaQuery.of(context).size;
     final double categoryHeight = size.height*0.30;
     double topContainer = 0;
@@ -88,8 +83,7 @@ class _UsersLandscapeState extends State<UsersLandscape>{
             backgroundColor: Colors.white,
             actions: [
               IconButton(icon: Icon(Icons.search), onPressed: () {
-                List<User> searchList = listOfUsers.where((u) => u.name.toLowerCase().startsWith(customControllerQuery.text.toLowerCase())).toList();
-                getPostsData(() {}, searchList );
+                //List<User> searchList = listOfUsers.where((u) => u.name.toLowerCase().startsWith(customControllerQuery.text.toLowerCase())).toList();
               }),
             ],
         ),
@@ -111,160 +105,29 @@ class _UsersLandscapeState extends State<UsersLandscape>{
                 child: filterCards()
                 ),
               ),
-              Expanded(
-                child: ListView.builder(
-                  controller: controller,
-                  itemCount: itemsData.length,
-                  physics: BouncingScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    double scale = 1.0;
-                    if ( topContainer > 0.5 ) {
-                      scale = index + 0.5 - topContainer;
-                      if ( scale < 0 ) {
-                        scale = 0;
-                      } else if ( scale > 1 ) {
-                        scale = 1;
-                      }
-                    }
-                    return Opacity(
-                      opacity: scale,
-                      child: Transform(
-                        transform: Matrix4.identity()..scale(scale, scale),
-                        alignment: Alignment.bottomCenter,
-                        child: Align(
-                          heightFactor: 0.8,
-                          alignment: Alignment.topCenter,
-                          child: Slidable(
-                            child: itemsData[index],
-                            delegate: new SlidableDrawerDelegate(),
-                            actionExtentRatio: 0.25,
-                            secondaryActions: [
-                              IconSlideAction(
-                              caption: S.current.editSlideOption,
-                              color: Color.fromRGBO(12, 77, 105, 1),
-                              icon: Icons.edit,
-                              onTap: () {
-                                editAlertDialog( context, responseList.elementAt(index) );
-                              })
-                            ],
-                        ),
-                        ),
-                      ),
-                    );
-                  },
+              StreamBuilder<List<User>>(
+                initialData: [],
+                stream: bloc.getUser,
+                builder: ( BuildContext context, AsyncSnapshot<List<User>> snapshot ) {
+                
+                  return Expanded(
+                    child: ListView.builder(
+                    controller: controller,
+                    itemCount: snapshot.data.length,
+                    physics: BouncingScrollPhysics(),
+                    itemBuilder: (context, index) {
+
+                      return _customListViewBuilder( snapshot.data[index].name, snapshot.data[index].birthdate, index, snapshot.data[index] );
+                    },
                 ),
-              ),
+                  );
+                },
+              )
             ],
           ),
         ),
       ),
     );
-  }
-
-    void getPostsData( Function e, List<User> searchList ) {
-    if ( searchList != null ) {
-    responseList = searchList;
-    } else {
-    responseList = listOfUsers;
-    }
-    // Filter
-    e.call();
-    //--------
-    List<Widget> listItems = [];
-    responseList.forEach((user) {
-      listItems.add(
-        Container(
-          height: 150,
-          margin: EdgeInsets.symmetric( horizontal: 20, vertical: 10 ),
-          decoration: BoxDecoration( borderRadius: BorderRadius.all( Radius.circular(20.0)), color: Colors.white, boxShadow: [
-            BoxShadow( color: Colors.black.withAlpha(100), blurRadius: 2.0 )
-          ]),
-          child: Padding(
-            padding: EdgeInsets.symmetric( horizontal: 20.0, vertical: 10 ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 200,
-                      child: Text(user.name, style: TextStyle( fontSize: 20, fontWeight: FontWeight.bold ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    SizedBox( height: 15.0 ),
-                    Text(user.birthdate, style: TextStyle( fontSize: 16, color: Colors.grey ))
-
-                  ],
-                ),
-                Image.asset('assets/images/users_welcome.png', height: 100.0)
-              ],
-            ),
-          ),
-        )
-      );
-    });
-
-    setState(() {
-      itemsData = listItems;
-    });
-  }
-
-    transformDate( User item, String date ) {
-
-    List<String> dateParts = date.split('-');
-    String year = dateParts.elementAt(0);
-    item.birthdate = year;
-  }
-  
-  void getUsers() async {
-
-    if ( listOfUsers != null ) {
-      listOfUsers.clear();
-    }
-
-    if ( responseList != null ) {
-      responseList.clear();
-    }
-
-    final client = RestClient(Dio(BaseOptions(contentType: "application/json")));
-    var tasks = await client.getTasks();
-    tasks.forEach((u) {
-      transformDate( u, u.birthdate );
-      listOfUsers.add(u);
-    });
-
-    getPostsData( () {}, listOfUsers);
-  }
-
-  void createUsers( String title ) async {
-    final client = RestClient(Dio(BaseOptions(contentType: "application/json")));
-    Map<String, String> userBody = {
-        'name' : title,
-        'birthdate' : _date.toString()
-    };
-    await client.createUser( userBody );
-    refreshList();
-  }
-
-    void editUsers( String title, String id ) async {
-    final client = RestClient(Dio(BaseOptions(contentType: "application/json")));
-    Map<String, String> userBody = {
-        'name' : title,
-        'birthdate' : _dateEdit.toString()
-    };
-    await client.editUser( id, userBody );
-    refreshList();
-  }
-
-  void refreshList() {
-    setState(() {
-      getUsers();
-      getPostsData(() {}, listOfUsers);
-    });
   }
 
   createAlertDialog( BuildContext context ) {
@@ -300,7 +163,7 @@ class _UsersLandscapeState extends State<UsersLandscape>{
             onPressed: () {
               Navigator.pop(context);
               if ( customController.text.toString().isNotEmpty ) {
-                createUsers( customController.text.toString() );
+                bloc.userCreate( customController.text.toString(), _date );
               }
             },
           )
@@ -340,7 +203,7 @@ class _UsersLandscapeState extends State<UsersLandscape>{
             onPressed: () {
               Navigator.pop(context);
               if ( customController.text.toString().isNotEmpty ) {
-                editUsers ( customController.text.toString(), user.id );
+                bloc.userEdit(customController.text.toString(), user.id, _dateEdit);
               }
             },
           )
@@ -380,10 +243,10 @@ class _UsersLandscapeState extends State<UsersLandscape>{
           alignment: Alignment.topCenter,
             child: Row(
             children: [
-              customFilterCard(context, S.current.newestDate, Colors.deepOrange, () { getPostsData(() { responseList.sort((user1, user2) => user2.birthdate.compareTo(user1.birthdate)); }, null); }),
-              customFilterCard(context, 'A-z', Colors.deepPurple, () { getPostsData(() { responseList.sort((user1, user2) => user1.name.compareTo(user2.name)); }, null); }),
-              customFilterCard(context, 'Z-a', Colors.greenAccent, () { getPostsData(() { responseList.sort((user1, user2) => user2.name.compareTo(user1.name)); }, null); }),
-              customFilterCard(context, S.current.olderDate, Colors.indigoAccent, () { getPostsData(() { responseList.sort((user1, user2) => user1.birthdate.compareTo(user2.birthdate)); }, null); })
+              customFilterCard(context, S.current.newestDate, Colors.deepOrange, () {  }),
+              customFilterCard(context, 'A-z', Colors.deepPurple, () { }),
+              customFilterCard(context, 'Z-a', Colors.greenAccent, () { }),
+              customFilterCard(context, S.current.olderDate, Colors.indigoAccent, () { })
             ],
           ),
         ),
@@ -424,5 +287,50 @@ class _UsersLandscapeState extends State<UsersLandscape>{
                 ),
               ),
     );
+  }
+
+  Widget _customListViewBuilder( String title, String birthdate, int index, User user) {
+    
+    return Slidable(child: Container(height: 150,
+                          margin: EdgeInsets.symmetric( horizontal: 20, vertical: 10 ),
+                          decoration: BoxDecoration( borderRadius: BorderRadius.all( Radius.circular(20.0)), color: Colors.white, boxShadow: [
+                            BoxShadow( color: Colors.black.withAlpha(100), blurRadius: 2.0 )
+                            ]),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric( horizontal: 20.0, vertical: 10 ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 100,
+                                        child: Text(title, style: TextStyle( fontSize: 20, fontWeight: FontWeight.bold ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,)
+                                        ),
+                                        SizedBox( height: 15.0 ),
+                                        Text(birthdate, style: TextStyle( fontSize: 16, color: Colors.grey ))
+                                    ],
+                                  ),
+                                  Image.asset('assets/images/users_welcome.png', height: 100.0)
+                                ],
+                              ),
+                            ),
+                          ),
+                            delegate: new SlidableDrawerDelegate(),
+                            actionExtentRatio: 0.25,
+                            secondaryActions: [
+                              IconSlideAction(
+                              caption: S.current.editSlideOption,
+                              color: Color.fromRGBO(12, 77, 105, 1),
+                              icon: Icons.edit,
+                              onTap: () {
+                                editAlertDialog( context, user );
+                              })
+                            ],
+                        );
   }
 }
