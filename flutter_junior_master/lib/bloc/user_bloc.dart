@@ -23,10 +23,6 @@ class UserBloc {
   String query;
   DateTime _date;
 
-  void getUsers() async {
-    _usersList.addAll(await userRepository.getUsers());
-  }
-
   final _userListStreamController = StreamController<List<User>>();
   Stream<List<User>> get userListStream => _userListStreamController.stream;
   StreamSink<List<User>> get userListSink => _userListStreamController.sink;
