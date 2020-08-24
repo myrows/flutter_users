@@ -1,7 +1,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_junior_master/bloc/provider.dart';
 import 'package:flutter_junior_master/generated/l10n.dart';
 import 'package:flutter_junior_master/users.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -13,10 +12,10 @@ void main() {
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
-    return Provider(
-        child: MaterialApp(
+    return MaterialApp(
         localizationsDelegates: [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
@@ -37,7 +36,6 @@ class MyApp extends StatelessWidget {
             return WelcomeScreen();
           }
         }),
-      ),
     );
   }
 }

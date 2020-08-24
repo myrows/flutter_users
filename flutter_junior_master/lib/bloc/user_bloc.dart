@@ -1,94 +1,96 @@
-
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:flutter_junior_master/model/user.dart';
 import 'package:flutter_junior_master/repository/user_repository.dart';
 
+enum BlocEvent {
+  loadList,
+  createUser,
+  editUser,
+  search,
+  sortedDesc,
+  sortedAz,
+  sortedZa,
+  sortedAsc
+}
 
 class UserBloc {
-
   final UserRepository userRepository = UserRepository();
 
   List<User> _usersList = [];
+  String title;
+  String id;
+  String query;
+  DateTime _date;
 
   void getUsers() async {
-    final client = RestClient(Dio(BaseOptions(contentType: "application/json")));
-    var tasks = await client.getTasks();
-    tasks.forEach((u) {
-      _usersList.add(u);
-    });
+    _usersList.addAll(await userRepository.getUsers());
   }
 
   final _userListStreamController = StreamController<List<User>>();
-  final _userSortStreamController = StreamController<List<User>>();
-  final _userCreateStreamController = StreamController<User>();
-  final _userEditStreamController = StreamController<User>();
+  Stream<List<User>> get userListStream => _userListStreamController.stream;
+  StreamSink<List<User>> get userListSink => _userListStreamController.sink;
 
+  final _eventStreamController = StreamController<BlocEvent>();
+  Stream<BlocEvent> get eventStream => _eventStreamController.stream;
+  StreamSink<BlocEvent> get eventSink => _eventStreamController.sink;
 
-  Stream <List<User>> get userListStream => _userListStreamController.stream;
-  StreamSink <List<User>> get userListSink => _userListStreamController.sink;
+  UserBloc() {
+    refreshList();
+    eventStream.listen((event) async {
+      switch (event) {
+        case BlocEvent.sortedDesc:
+          _usersList.sort(
+              (user1, user2) => user2.birthdate.compareTo(user1.birthdate));
+          break;
+        case BlocEvent.sortedAz:
+          _usersList.sort((user1, user2) => user1.name.compareTo(user2.name));
+          break;
+        case BlocEvent.sortedZa:
+          _usersList.sort((user1, user2) => user2.name.compareTo(user1.name));
+          break;
+        case BlocEvent.sortedAsc:
+          _usersList.sort(
+              (user1, user2) => user1.birthdate.compareTo(user2.birthdate));
+          break;
+        case BlocEvent.createUser:
+          await userRepository.createUsers(title, _date);
+          refreshList();
+          break;
+        case BlocEvent.editUser:
+          await userRepository.editUsers(title, id, _date);
+          refreshList();
+          break;
+        case BlocEvent.search:
+        print(query);
+        List<User> _searchList = [];
+          _searchList.addAll(_usersList.where((u) => u.name.toLowerCase().startsWith(query)).toList());
+          userListSink.add(_searchList);
+        break;
+        default:
+      }
 
-  Stream<List<User>> get getUser async* {
-    yield await userRepository.getUsers();
+      userListSink.add(_usersList);
+    });
   }
 
-  Stream <User> userCreate( String title, DateTime date) {
-    _createUser( title, date );
-    _userCreateStreamController.sink;
-  } 
-
-  Stream <User> userEdit( String title, String id, DateTime date) {
-    _editUser( title, id, date );
-    _userEditStreamController.sink;
+  void getData(String _dataTitle, String _dataId, DateTime _dataDate) async {
+    this.title = _dataTitle;
+    this._date = _dataDate;
+    this.id = _dataId;
   }
 
-  Stream <List<User>> userSort() {
-    _userSort();
-    _userSortStreamController.sink;
+  void searchQuery( String _query ) async {
+    this.query = _query;
   }
 
-  UserBloc () {
-    getUsers();
-    _userListStreamController.add(_usersList);
+  refreshList() async {
+    _usersList = await userRepository.getUsers();
+    userListSink.add(_usersList);
   }
 
-  _createUser( String i, DateTime date ) async {
-
-    final client = RestClient(Dio(BaseOptions(contentType: "application/json")));
-    Map<String, String> userBody = {
-        'name' : i,
-        'birthdate' : date.toString()
-    };
-    await client.createUser( userBody );
-  }
-
-  _editUser( String title, String id, DateTime _dateEdit ) async {
-
-    final client = RestClient(Dio(BaseOptions(contentType: "application/json")));
-    Map<String, String> userBody = {
-        'name' : title,
-        'birthdate' : _dateEdit.toString()
-    };
-    await client.editUser( id, userBody  );
-  }
-
-  _userSort( ) async {
-    List<User> listToSort = [];
-    listToSort.addAll( await userRepository.getUsers());
-
-    listToSort.sort((user1, user2) => user2.birthdate.compareTo(user1.birthdate));
-
-    _userListStreamController.sink;
-  }
-
-  void dispose() { 
-    _userSortStreamController?.close();
+  void dispose() {
     _userListStreamController?.close();
-    _userCreateStreamController?.close();
-    _userEditStreamController?.close();
+    _eventStreamController?.close();
   }
-
-
 }
-

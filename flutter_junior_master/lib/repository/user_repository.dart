@@ -7,8 +7,10 @@ class UserRepository {
 
   Future<List<User>> getUsers() =>
       _userApiProvider.getUsers();
-  void createUsers( String title, DateTime _date ) =>
+  Future<List<User>> getUserSorted() =>
+      _userApiProvider.getUserSorted();
+  Future<User> createUsers( String title, DateTime _date ) =>
       _userApiProvider.createUsers( title, _date );
-  void editUsers( String title, String id, DateTime _dateEdit ) =>
+  Future<User> editUsers( String title, String id, DateTime _dateEdit ) =>
       _userApiProvider.editUsers( title, id, _dateEdit );
 }

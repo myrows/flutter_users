@@ -8,7 +8,6 @@ import 'package:flutter_junior_master/model/user.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_rounded_date_picker/rounded_picker.dart';
 
-import 'bloc/provider.dart';
 import 'bloc/user_bloc.dart';
 
 class UsersLandscape extends StatefulWidget {
@@ -38,8 +37,6 @@ class _UsersLandscapeState extends State<UsersLandscape>{
 
   @override
   Widget build(BuildContext context) {
-    // bloc
-    bloc = Provider.of(context);
     final Size size = MediaQuery.of(context).size;
     final double categoryHeight = size.height*0.30;
     double topContainer = 0;
@@ -82,8 +79,12 @@ class _UsersLandscapeState extends State<UsersLandscape>{
             ),
             backgroundColor: Colors.white,
             actions: [
-              IconButton(icon: Icon(Icons.search), onPressed: () {
+              IconButton(icon: Icon(Icons.search, color: Colors.black,), onPressed: () {
                 //List<User> searchList = listOfUsers.where((u) => u.name.toLowerCase().startsWith(customControllerQuery.text.toLowerCase())).toList();
+                setState(() {
+                  bloc.searchQuery( customControllerQuery.text.toLowerCase() );
+                bloc.eventSink.add( BlocEvent.search );
+                });
               }),
             ],
         ),
@@ -107,7 +108,7 @@ class _UsersLandscapeState extends State<UsersLandscape>{
               ),
               StreamBuilder<List<User>>(
                 initialData: [],
-                stream: bloc.getUser,
+                stream: bloc.userListStream,
                 builder: ( BuildContext context, AsyncSnapshot<List<User>> snapshot ) {
                 
                   return Expanded(
@@ -163,7 +164,8 @@ class _UsersLandscapeState extends State<UsersLandscape>{
             onPressed: () {
               Navigator.pop(context);
               if ( customController.text.toString().isNotEmpty ) {
-                bloc.userCreate( customController.text.toString(), _date );
+                bloc.getData(customController.text.toString(), null, _dateEdit);
+                bloc.eventSink.add(BlocEvent.createUser);
               }
             },
           )
@@ -203,7 +205,9 @@ class _UsersLandscapeState extends State<UsersLandscape>{
             onPressed: () {
               Navigator.pop(context);
               if ( customController.text.toString().isNotEmpty ) {
-                bloc.userEdit(customController.text.toString(), user.id, _dateEdit);
+                //bloc.userEdit(customController.text.toString(), user.id, _dateEdit);
+                bloc.getData(customController.text.toString(), user.id, _dateEdit);
+                bloc.eventSink.add(BlocEvent.editUser);
               }
             },
           )
@@ -243,10 +247,10 @@ class _UsersLandscapeState extends State<UsersLandscape>{
           alignment: Alignment.topCenter,
             child: Row(
             children: [
-              customFilterCard(context, S.current.newestDate, Colors.deepOrange, () {  }),
-              customFilterCard(context, 'A-z', Colors.deepPurple, () { }),
-              customFilterCard(context, 'Z-a', Colors.greenAccent, () { }),
-              customFilterCard(context, S.current.olderDate, Colors.indigoAccent, () { })
+              customFilterCard(context, S.current.newestDate, Colors.deepOrange, () { bloc.eventSink.add(BlocEvent.sortedDesc); }),
+              customFilterCard(context, 'A-z', Colors.deepPurple, () { bloc.eventSink.add(BlocEvent.sortedAz); }),
+              customFilterCard(context, 'Z-a', Colors.greenAccent, () { bloc.eventSink.add(BlocEvent.sortedZa); }),
+              customFilterCard(context, S.current.olderDate, Colors.indigoAccent, () { bloc.eventSink.add(BlocEvent.sortedAsc); })
             ],
           ),
         ),

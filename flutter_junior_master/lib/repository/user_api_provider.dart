@@ -22,7 +22,18 @@ class UserApiProvider {
     return users;
   }
 
-  void createUsers( String title, DateTime _date ) async {
+  Future<List<User>> getUserSorted() async {
+    final client = RestClient(Dio(BaseOptions(contentType: "application/json")));
+    var users = await client.getTasks();
+    users.forEach((u) { 
+      transformDate(u, u.birthdate);
+    });
+    users.sort((user1, user2) => user2.birthdate.compareTo(user1.birthdate));
+
+    return users;
+  }
+
+  Future<User> createUsers( String title, DateTime _date ) async {
     final client = RestClient(Dio(BaseOptions(contentType: "application/json")));
     Map<String, String> userBody = {
         'name' : title,
@@ -31,7 +42,7 @@ class UserApiProvider {
     await client.createUser( userBody );
   }
 
-    void editUsers( String title, String id, DateTime _dateEdit ) async {
+    Future<User> editUsers( String title, String id, DateTime _dateEdit ) async {
     final client = RestClient(Dio(BaseOptions(contentType: "application/json")));
     Map<String, String> userBody = {
         'name' : title,
